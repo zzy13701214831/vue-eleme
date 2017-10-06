@@ -1,0 +1,177 @@
+(1)
+前端开发趋势
+旧浏览器逐渐淘汰，移动端需求增加
+前端交互越来越多，功能越来越复杂
+架构从传统后台MVC向REST API + 前端MV*迁移
+
+vue.js - MVVM框架 View-视图，DOM  ViewModel-通讯，观察者  Model-数据，Javascript对象
+针对具有复杂交互逻辑的前端应用 提供基础的架构抽象 通过Ajax数据持久化，保证前端用户体验
+因为移动端刷新代价太大，大部分都做成单页面
+
+vue router vue resource 轻量级  github社区完善  
+技术选型 vue gzip之后大小只有20K+ 适合移动端 学习曲线平稳
+借鉴了angular的指令和 react的组件化 思想
+vue独有的 计算属性
+
+核心思想 数据驱动+组件化  
+数据驱动：DOM是数据的一种自然映射 Directives  DOM Listeners
+vue对象实例化的过程中，会给a.b通过ES5的Object.defineProperty()方法为data增加getter和setter，同时vuejs会对模板做编译，解析生成指令对象Directive 如v-text="a.b"，每个指令对象关联着一个Watcher，对a.b求值的时候触发getter，改变data的时候触发setter，Watcher通知Directive 更新视图
+组件化：扩展HTML元素，封装可重用的代码
+1、页面上每个独立的可视/可交互区域视为一个组件
+2、每个组件对应一个工程目录，组件所需要的各种资源在这个目录下就近维护
+3、页面不过是组件的容器，组件可以嵌套自由组合形成完整的页面
+
+vue-cli  脚手架工具
+组件必须通过components注册才能使用
+webstorm ctr+alt+L格式化代码
+
+初始化后的文件：
+build和config和webpack配置相关
+node_modules是通过npm install安装的依赖
+src是存放源码
+static是存放第三方静态资源
+.babelrc 是babel编译的配置 把ES6的语法进行转换
+babel依赖许多插件 插件是进行转换的
+.editorconfig 
+.eslintignore 忽略语法坚持
+eslinkrc.js  语法检查配置 规则
+.gitignore git仓库忽略的文件
+index.html 入口文件
+package.json 配置和依赖
+
+webpack打包：把各种各样的前端文件打包，最终得到.js .css .png
+"dev": "node build/dev-server.js"
+webpack.base.conf.js webpack的基础配置
+webpack.dev.conf.js 热加载 对单独的css文件做编译 开发插件
+webpack.prod.conf.js
+
+外卖app--商家页面
+需求分析：
+头部：商家描述 浮层
+内容区：商品页（分类+列表）商品详情 评价页
+购物车：商品列表 
+
+资源resource 
+标注psd 适应不同dpr的手机 要切图2x和3x 
+css sprites固然可以 但在webpack项目中 会把图片打包 单张图就可以 
+svg矢量图-转化为图标字体文件通过css引入 icoMoon
+
+项目目录结构设计
+main.js入口文件 app.vue主组件
+common目录包含公共资源 stylus-css预处理器 和sass less略有差别 fonts 图标子体文件 js js代码
+components包含组件资源  每个组件单独一个目录
+
+mock数据 模拟后台数据
+data.json seller商家信息等 goods商品信息 ratings商家评价
+build- dev-server 编写数据接口
+var appData = require('../data.json');
+var seller = appData.seller;
+var goods = appData.goods;
+var ratings = appData.ratings;
+
+var apiRoutes = express.Router();
+
+apiRoutes.get('/seller', function(req, res) {
+  res.json({
+    errno: 0,
+    data: seller
+  });
+});
+
+apiRoutes.get('/goods',function(req, res) {
+  res.json({
+    errno: 0,
+    data: goods
+  });
+});
+
+apiRoutes.get('/ratings',function(req, res) {
+  res.json({
+    errno: 0,
+    data: ratings
+  });
+});
+
+app.use('/api', apiRoutes);
+
+http://localhost:8080/api/ratings
+
+项目骨架
+组件拆分 header  内容区tab：goods ratings seller 
+eslintrc.js 改变rules:  'semi':['error','always'] 有分号 'indent'：0 没缩进
+stylus在package.json中添加 "stylus"和 "stylus-loader"
+注意import export default 和 注册components
+tab 部分 flex布局 flex不同浏览器兼容性
+注意设计稿标注是按两倍标的 由iphone6做模板宽375像素 物理像素是设备像素的两倍  dpa
+vue-loader依赖了一个postcss的插件，解决css兼容问题
+
+vue-router 通过package.json  和npm install安装
+main.js中：
+import VueRouter from 'vue-router';
+Vue.use(VueRouter);
+
+import goods from './components/goods/goods';
+import ratings from './components/ratings/ratings';
+import seller from './components/seller/seller';
+
+const routes = [
+  { path: '/goods', component: goods },
+  { path: '/ratings', component: ratings },
+  { path: '/seller', component: seller }
+];
+
+/* eslint-disable no-new */
+// 接着创建路由实例
+const router = new VueRouter({
+  // ES6缩写语法，相当于routes:routes
+  routes
+});
+// 最后创建vue实例并挂载
+const app = new Vue({
+  el: '#app',
+  router,
+  template: '<App/>',
+  components: { App }
+}).$mount('#app');
+
+App.vue中：
+<router-link to="/goods">商品</router-link>
+<router-link to="/ratings">评论</router-link>
+ <router-view></router-view>
+
+这个部分出现了很多问题：1、vue2和vue-router2都改变了一下内部指令 2、vue-devtools 3、挂载
+
+进一步 ：router.push('/goods');编程式导航
+linkActiveClass: 'active' 激活样式类名
+
+1px边框：
+用border-bottom: 1px solid rgba(7,17,27,0.1)
+在手机上看到的是2px
+所以要用after伪类 然后缩放
+mixin css预处理器特殊的方法
+
+样式部分的stylus代码为
+<style lang="stylus" rel="stylesheet/stylus">
+@import "./common/stylus/mixin.styl"
+  #app
+    .tab
+      display: flex
+      width: 100%
+      height: 40px
+      line-height: 40px
+      border-1px(rgba(7, 17, 27, 0.1))
+      .tab-item
+        flex: 1
+        text-align: center
+        & > a
+          display: block
+          font-size: 14px
+          color: rgb(77, 85, 93)
+          &.active
+            color: rgb(240, 20, 20)
+</style>
+(2)
+header组件开发：
+通过ajax请求获取目标数据，返回seller对象
+vue-resource:
+在package.json里
