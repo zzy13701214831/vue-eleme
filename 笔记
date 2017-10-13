@@ -170,8 +170,37 @@ mixin css预处理器特殊的方法
           &.active
             color: rgb(240, 20, 20)
 </style>
-(2)
+
+vue学习笔记(2)
 header组件开发：
 通过ajax请求获取目标数据，返回seller对象
 vue-resource:
-在package.json里
+在package.json里安装
+import VueResource from 'vue-resource';
+Vue.use(VueResource);
+
+export default {
+    data () {
+      return {
+        seller: {}
+      };
+    },
+    created() {
+      this.$http.get('/api/seller').then((response) => {
+        response = response.body;
+        if (response.errno === ERR_OK) {
+          this.seller = response.data;
+          console.log(this.seller);
+        }
+      });
+    },
+    components: {
+      'v-header': header
+    }
+  };
+
+header部分
+<img width="64" height="64" :src="seller.avatar" alt="">
+需要bind 简写为: 因为src在编译时不存在 会报错
+v-if判断supports是否存在
+
