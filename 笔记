@@ -148,9 +148,48 @@ linkActiveClass: 'active' 激活样式类名
 用border-bottom: 1px solid rgba(7,17,27,0.1)
 在手机上看到的是2px
 所以要用after伪类 然后缩放
-mixin css预处理器特殊的方法
+mixin css预处理器特殊的方法 做不同手机的适配
+//mixin.styl
+border-1px($color)
+  position: relative
+  &:after
+    display: block
+    position: absolute
+    left: 0
+    bottom: 0
+    width: 100%
+    border-top: 1px solid $color
+    content: ' '
 
-样式部分的stylus代码为
+bg-image($url)
+  background-image: url($url + "@2x.png")
+  @media (-webkit-min-device-pixel-radio: 3),(min-device-pixel-radio: 3)
+    background-image:url($url + "@3x.png")
+
+//base.styl
+body, html
+  line-height: 1
+  font-weight: 200
+  font-family: 'PingFang SC', 'STHeitiSC-Light', 'Heivetica-Light', arial, sans-serif
+
+@media (-webkit-mid-device-pixel-ratio: 1.5),(mid-device-pixel-ratio: 1.5)
+  .border-1px 
+    &::after
+      -webkit-transform: scaleY(0.7)
+      transform: scaleY(0.7)
+
+@media (-webkit-mid-device-pixel-ratio: 2),(mid-device-pixel-ratio: 2)
+  .border-1px
+    &::after
+      -webkit-transform: scaleY(0.5)
+      transform: scaleY(0.5)
+
+//index.styl
+@import "./mixin.styl"
+@import "./icon.styl"
+@import "./base.styl"
+
+App.vue样式部分的stylus代码为
 <style lang="stylus" rel="stylesheet/stylus">
 @import "./common/stylus/mixin.styl"
   #app
@@ -204,3 +243,886 @@ header部分
 需要bind 简写为: 因为src在编译时不存在 会报错
 v-if判断supports是否存在
 
+超出部分省略样式
+white-space: nowrap
+overflow: hidden
+text-overflow: ellipsis
+
+父元素font-size:0 消除空白间隙
+模板html
+<div class="header">
+  <div class="content-wrapper">
+    <div class="avatar">
+      <img width="64" height="64" :src="seller.avatar" alt="">
+    </div>
+    <div class="content">
+      <div class="title">
+        <span class="brand"></span>
+        <span class="name">{{seller.name}}</span>
+      </div>
+      <div class="description">
+        {{seller.description}}/{{seller.deliveryTime}}分钟送达
+      </div>
+      <div v-if="seller.supports" class="support">
+        <span class="icon" :class="classMap[seller.supports[0].type]"></span>
+        <span class="text">{{seller.supports[0].description}}</span>
+      </div>
+    </div>
+    <div v-if="seller.supports" class="support-count">
+      <span class="count">{{seller.supports.length}}个</span>
+      <i class="icon-keyboard_arrow_right"></i>
+    </div>
+  </div>
+  <div class="bulletin-wrapper">
+    <span class="bulletin-title"></span><span class="bulletin-text">{{seller.bulletin}}</span>
+    <i class="icon-keyboard_arrow_right"></i>
+  </div>
+  <div class="background">
+    <img :src="seller.avatar" alt="" width="100%" height="100%">
+  </div>
+</div>
+//内容区块
+.content-wrapper
+  position: relative
+  padding: 24px 12px 18px 24px
+  font-size: 0
+  .avatar
+    display: inline-block
+    vertical-align: top
+    img
+      border-radius: 2px
+  .content
+    display: inline-block
+    margin-left: 16px
+    .title
+      margin: 2px 0 8px 0
+      .brand
+        display: inline-block
+        vertical-align: top
+        width: 30px
+        height: 18px
+        bg-image('brand')
+        background-size: 30px 18px
+        background-repeat: no-repeat
+      .name
+        margin-left: 6px
+        font-size: 16px
+        line-height: 18px
+        font-weight: bold
+    .description
+      margin-bottom: 10px
+      line-height: 12px
+      font-size: 12px
+    .support
+      .icon
+        display:inline-block
+        vertical-align: top
+        width: 12px
+        height: 12px
+        margin-right: 4px
+        background-size: 12px 12px
+        background-repeat: no-repeat
+        &.decrease
+          bg-image('decrease_1')
+        &.discount
+          bg-image('discount_1')
+        &.guarantee
+          bg-image('guarantee_1')
+        &.invoice
+          bg-image('invoice_1')
+        &.special
+          bg-image('special_1')
+      .text
+        line-height: 12px
+        font-size: 10px
+  .support-count
+    position: absolute
+    right: 12px
+    bottom: 14px
+    padding: 0 8px
+    height: 24px
+    line-height: 24px
+    border-radius: 14px
+    background: rgba(0, 0, 0, 0.2)
+    text-align: center
+    .count
+      vertical-align: top
+      font-size: 10px
+    .icon-keyboard_arrow_right
+      margin-left: 2px
+      line-height: 24px
+      font-size: 10px
+//公共区块
+.bulletin-wrapper
+  position: relative
+  height: 28px
+  line-height: 28px
+  padding: 0 22px 0 12px
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+  background: rgba(7, 17, 27, 0.2)
+  .bulletin-title
+    display: inline-block
+    vertical-align: top
+    margin-top: 8px
+    width: 22px
+    height: 12px
+    bg-image('bulletin')
+    background-size: 22px 12px
+    background-repeat: no-repeat
+  .bulletin-text
+    vertical-align: top
+    margin: 0 4px
+    font-size: 10px
+  .icon-keyboard_arrow_right
+    position: absolute
+    font-size: 10px
+    right: 12px
+    top: 8px
+//模糊背景区块
+.header
+  position: relative
+  overflow: hidden //背景的阴影会透出来 所以要处理
+  color: #fff
+  background: rgba(7, 17, 27, 0.5)
+  .background
+    position: absolute
+    top: 0
+    left: 0
+    height: 100%
+    width: 100%
+    z-index: -1
+    filter: blur(10px)
+
+详情弹层: css fixed布局 Sticky footer布局
+vue 实例化的时候会对data中的对象属性遍历，绑定getter和setter    methods存储一些要用的方法操作变量
+export default {
+  props: {
+    seller: {
+      type: Object
+    }
+  },
+  data() {
+    return {
+      detailShow: false
+    };
+  },
+  methods: {
+    showDetail() {
+      this.detailShow = true;
+    }
+  },
+  created() {
+    this.classMap = ['decrease', 'discount', 'special', 'invoice', 'guarantee'];
+  }
+};
+
+Sticky footer布局
+.detail
+      position: fixed
+      z-index: 100
+      top: 0
+      left: 0
+      width: 100%
+      height: 100%
+      overflow: auto
+      background: rgba(7, 17, 27, 0.8)
+      .detail-wrapper
+        min-height: 100%
+        .detail-main
+          margin-top: 64px
+          padding-bottom: 64px
+      .detail-close
+        position: relative
+        width: 32px
+        height: 32px
+        margin: -64px auto 0 auto
+        clear: both
+        font-size: 32px
+
+star评星组件 v-for遍历 扩展性更好
+<template>
+  <div class="star" :class="starType">
+    <span v-for="itemClass in itemClasses" :class="itemClass" class="star-item" track-by="$index"></span>
+  </div>
+</template>
+
+<script type="text/ecmascript-6">
+  const LENGTH = 5;
+  const CLS_ON = 'on';
+  const CLS_HALF = 'half';
+  const CLS_OFF = 'off';
+
+  export default{
+    props: {
+      size: {
+        type: Number
+      },
+      score: {
+        type: Number
+      }
+    },
+    computed: {
+      starType() {
+        return 'star-' + this.size;
+      },
+      itemClasses() {//获得星星的状态
+        let res = [];
+        let score = Math.floor(this.score * 2) / 2;
+        let hasDecimal = score % 1 !== 0;
+        let integer = Math.floor(score);
+        for (let i = 0; i < integer; i++) {
+          res.push(CLS_ON);
+        }
+        if (hasDecimal) {
+          res.push(CLS_HALF);
+        }
+        while (res.length < LENGTH) {
+          res.push(CLS_OFF);
+        }
+        return res;
+      }
+    }
+  };
+</script>
+
+<style lang="stylus" rel="stylesheet/stylus">
+@import "../../common/stylus/mixin.styl"
+
+  .star
+    font-size: 0
+    .star-item
+      display: inline-block
+      background-repeat: no-repeat
+    &.star-48
+      .star-item
+        width: 20px
+        height: 20px
+        margin-right: 22px
+        background-size: 20px 20px
+        &:last-child
+          margin-right: 0
+        &.on
+          bg-image('star48_on')
+        &.half
+          bg-image('star48_half')
+        &.off
+          bg-image('star48_off')
+    &.star-36
+      .star-item
+        width: 15px
+        height: 15px
+        margin-right: 6px
+        background-size: 15px 15px
+        &:last-child
+          margin-right: 0
+        &.on
+          bg-image('star36_on')
+        &.half
+          bg-image('star36_half')
+        &.off
+          bg-image('star36_off')
+    &.star-24
+      .star-item
+        width: 10px
+        height: 10px
+        margin-right: 3px
+        background-size: 10px 10px
+        &:last-child
+          margin-right: 0
+        &.on
+          bg-image('star24_on')
+        &.half
+          bg-image('star24_half')
+        &.off
+          bg-image('star24_off')
+
+</style>
+外边距等不写在组件内，这样组件才能更好复用，可以在外层加wrapper来作包裹
+
+flex布局实现优惠信息布局
+<div class="title">
+  <div class="line"></div>
+  <div class="text">优惠信息</div>
+  <div class="line"></div>
+</div>
+
+.title
+  width: 80%
+  margin: 28px auto 24px
+  display: flex
+  .line
+    flex: 1
+    position: relative
+    top: -6px
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2)
+  .text
+    padding: 0 12px
+    font-weight: 700
+    font-size: 14px
+
+vue-loader 有postcss自动添加css的flex兼容性代码
+自己封装了message小组件~
+@click v-on:click的缩写
+vue实现 css3动画
+detail下
+<transition name="fade"></transition>包住detail
+  &.fade-enter-active, &.fade-leave-active
+    transition: all 1s ease
+  &.fade-enter, &.fade-leave-to
+    opacity: 0
+iPhone模糊效果：    
+backdrop-filter: blur(10px)
+这里中间除了一些样式错误的问题，查了半天，最后找到是在message.vue组件中 写的样式影响到了header.vue中的title类，修改名称之后基本header组件就完成了
+
+学习笔记（3）
+goods组件
+分为左边menu和右边foods
+左边v-for li 标签用table实现垂直居中（多行）
+使用better-scroll库 实现内容滚动 iscroll重写
+npm install better-scroll --save-dev
+这里又遇到了2.0的一些问题
+最后使用ref="menuWrapper"属性，通过vue.nextTick(callback)来获取dom更新,在methods中调用better-scroll，成功实现滚动效果
+methods: {
+  _initScroll() {
+    this.menuScroll = new BScroll(this.$refs.menuWrapper, {});
+    this.foodsScroll = new BScroll(this.$refs.foodsWrapper, {});
+  }
+}
+滚动左右联动 利用右侧Y轴落在哪个区间进行判断
+food-list-hook 指js选择 并没实际样式
+export default{
+  props: {
+    seller: {
+      type: Object
+    }
+  },
+  data() {
+    return {
+      goods: [],
+      listHeight: [],
+      scrollY: 0
+    };
+  },
+  computed: {
+    currentIndex() {//获取当前时刻视口高度所在区间索引
+      for (let i = 0; i < this.listHeight.length; i++) {
+        let height1 = this.listHeight[i];
+        let height2 = this.listHeight[i + 1];
+        if ((!height2) || (this.scrollY >= height1 && this.scrollY < height2)) {
+          return i;
+        }
+      }
+      return 0;
+    }
+  },
+  created() {
+    this.classMap = ['decrease', 'discount', 'special', 'invoice', 'guarantee'];
+
+    this.$http.get('/api/goods').then((response) => {
+      response = response.body;
+      if (response.errno === ERR_OK) {
+        this.goods = response.data;
+        this.$nextTick(() => {//初始化滚动 计算高度
+          this._initScroll();
+          this._calculateHeight();
+        });
+      }
+    });
+  },
+  methods: {
+    selectMenu(index, event) {//点击滚动到目标元素
+      if (!event._constructed) {
+        return;
+      }
+      let foodList = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook');
+      let el = foodList[index];
+      this.foodsScroll.scrollToElement(el, 300);
+    },
+    _initScroll() {
+      this.menuScroll = new BScroll(this.$refs.menuWrapper, {//允许点击
+        click: true
+      });
+
+      this.foodsScroll = new BScroll(this.$refs.foodsWrapper, {
+        probeType: 3
+      });
+
+      this.foodsScroll.on('scroll', (pos) => {//监听滚动事件
+        this.scrollY = Math.abs(Math.round(pos.y));
+      });
+    },
+    _calculateHeight() {得到高度数组，从而获取区间
+      let foodList = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook');
+      let height = 0;
+      this.listHeight.push(height);
+      for (let i = 0; i < foodList.length; i++) {
+        let item = foodList[i];
+        height += item.clientHeight;
+        this.listHeight.push(height);
+      }
+    }
+  }
+};
+<li v-for="(item,index) in goods" class="menu-item" :class="{'current':currentIndex===index}" @click="selectMenu(index,$event)">
+  <span class="text border-1px">
+    <span v-show="item.type>0" class="icon" :class="classMap[item.type]"></span>{{item.name}}
+  </span>
+</li>
+//.menu-item下 被选中区间样式 注意绑定样式的方式
+&.current
+  position: relative
+  z-index: 10
+  margin-top: -1px
+  background: #fff
+  font-weight: 700
+  .text
+    border-none()
+
+购物车组件shopcart
+display: inline-block;要考虑到间隙，父级font-size:0消除间隙
+box-sizing: border-box布局
+.logo-wrapper
+  display: inline-block;
+  position: relative
+  top: -10px
+  margin: 0 12px
+  padding: 6px
+  width: 56px
+  height: 56px
+  box-sizing: border-box
+
+.price
+  display: inline-block
+  vertical-align: top
+  margin-top: 12px
+  line-height: 24px
+  padding-right: 12px
+  box-sizing: border-box
+  border-right: 1px solid rgba(255, 255, 255, 0.1)
+  font-size: 16px
+  font-weight: 700
+  color: rgba(255, 255, 255, 0.4)
+这里如果用line-height垂直居中的话 border-right会撑满，所以用margin-top
+利用好vue的计算属性来绑定数据和切换样式
+
+购物车增删组件cartcontrol
+注意 这里绑定点击事件不生效 是因为goods组件中使用better-scroll需要传入参数click:true
+vue的特性是新增某个属性时不能直接赋值，需要新增接口
+Vue.set(this.food, 'count', 1);
+css3动画 加减商品按钮滑动
+.cart-decrease
+  display: inline-block
+  padding: 6px
+  &.move-enter-active, &.move-leave-active
+    transition: all 0.4s linear
+    .inner
+      transition: all 0.4s linear
+  &.move-enter, &.move-leave-to
+    opacity: 0
+    transform: translate3D(24px, 0, 0)
+    .inner
+      transform: rotate(180deg)
+  .inner
+    display: inline-block
+    line-height: 24px
+    font-size: 24px
+    color: rgb(0, 160, 220)
+
+这里不得不提到的是加入购物车的动画，中间遇到了一些问题，首先是vue2.0 移除了1.0中的$dispatch 和$broadcast，所以尽管事件比较简单，还是用了一个全局的$eventHub来实现，相当于一个Vue实例，专门用来处理自定义事件监听和发送。
+Vue.prototype.$eventHub = Vue.prototype.$eventHub || new Vue();
+Vue.prototype.$eventHub.$emit('cart-add', event.target);
+在created hook中监听
+Vue.prototype.$eventHub.$on('cart-add', this._drop);
+解除绑定
+beforeDestroy() {
+  Vue.prototype.$eventHub.$off('cart-add', this._drop);
+},
+另外一点是transition-group专门用于v-for的过渡动画
+
+<div class="ball-container">
+  <div v-for="ball in balls">
+    <transition name="drop" @before-enter="beforeDrop" @enter="dropping" @after-enter="afterDrop">
+      <div class="ball" v-show="ball.show">
+      <div class="inner inner-hook"></div>
+      </div>
+    </transition>
+  </div>
+</div>
+
+methods: {
+  drop(el) {
+    for (let i = 0; i < this.balls.length; i++) {
+      let ball = this.balls[i];
+      if (!ball.show) {
+        ball.show = true;
+        ball.el = el;
+        this.dropBalls.push(ball);
+        return;
+      }
+    }
+  },
+  beforeDrop(el) {
+    let count = this.balls.length;
+    while (count--) {
+      let ball = this.balls[count];
+      if (ball.show) {
+        let rect = ball.el.getBoundingClientRect();
+        let x = rect.left - 32;
+        let y = -(window.innerHeight - rect.top - 22);
+        el.style.display = '';
+        el.style.webkitTransform = `translate3d(0,${y}px,0)`;
+        el.style.transform = `translate3d(0,${y}px,0)`;
+        let inner = el.getElementsByClassName('inner-hook')[0];
+        inner.style.webkitTransform = `translate3d(${x}px,0,0)`;
+        inner.style.transform = `translate3d(${x}px,0,0)`;
+      }
+    }
+  },
+  dropping(el, done) {
+    /* eslint-disable no-unused-vars */
+    let rf = el.offsetHeight;
+    this.$nextTick(() => {
+      el.style.webkitTransform = 'translate3d(0,0,0)';
+      el.style.transform = 'translate3d(0,0,0)';
+      let inner = el.getElementsByClassName('inner-hook')[0];
+      inner.style.webkitTransform = 'translate3d(0,0,0)';
+      inner.style.transform = 'translate3d(0,0,0)';
+      el.addEventListener('transitionend', done);
+    });
+  },
+  afterDrop(el) {
+    let ball = this.dropBalls.shift();
+    if (ball) {
+      ball.show = false;
+      el.style.display = 'none';
+    }
+  }
+}
+
+let rf = el.offsetHeight;  //手动重绘
+_drop(target) {
+  // 体验优化，异步执行下落动画
+  this.$nextTick(() => {
+    this.$refs.shopcart.drop(target);
+  });
+}
+还是反复强调的 数据改变了 dom并没有立即生效 所以nextTick异步操作很有必要 用户体验更好
+购物车折叠
+.shopcart-list
+  position: absolute
+  top: 0
+  left: 0
+  z-index: -1
+  width: 100%
+  transform: translate3d(0, -100%, 0)
+  &.fold-enter-active, &.fold-leave-active
+    transition: all 0.5s
+  &.fold-enter-to, &.fold-leave
+    transform: translate3d(0, -100%, 0)
+  &.fold-enter, &.fold-leave-to
+    transform: translate3d(0, 0, 0)
+需要关注到的是，整个过程中，我所做的都是对数据的操作，不需要关心dom的变化，随着数据的改变，样式和动画会自动调整，很少需要去操作dom，这就是vue数据驱动的优秀之处，代码非常清晰，逻辑也相对简单
+
+商品详情组件
+.image-header
+  position: relative
+  width: 100%
+  height: 0
+  padding-top: 100%
+  img
+    position: absolute
+    top: 0
+    left: 0
+    width: 100%
+    height: 100%
+
+padding-top保证了图片加载的高度 等于宽度
+需要按钮点击区域变大  使用 padding
+滑出动画
+显示隐藏：子组件的methods可以被父组件调用
+
+评价选择组件
+切换不同评价状态，计算属性和@click
+传入props 事件emit
+
+评价列表组件
+{{rating.rateTime | formatDate}}
+filters: {
+  formatDate(time) {
+    let date = new Date(time);
+    return formatDate(date,'yyyy-MM-dd hh:mm');
+  }
+}
+  import {formatDate} from 'common/js/date';
+//date.js
+export function formatDate(date, fmt) {
+  if (/(y+)/.test(fmt)) {
+    fmt = fmt.replace(RegExp.$1, (date.getFullYear() + '').substr(4 - RegExp.$1.length));
+  }
+  let o = {
+    'M+': date.getMonth() + 1,
+    'd+': date.getDate(),
+    'h+': date.getHours(),
+    'm+': date.getMinutes(),
+    's+': date.getSeconds()
+  };
+  for (let k in o) {
+    if (new RegExp(`(${k})`).test(fmt)) {
+      let str = o[k] + '';
+      fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? str : padLeftZero(str));
+    }
+  }
+  return fmt;
+};
+
+function padLeftZero(str) {
+  return ('00' + str).substr(str.length);
+}
+
+ratings评价组件开发
+overview
+使用之前的star组件 搭配一些布局和样式
+针对iPhone5的小屏幕做一个适配
+@media only screen and (max-width:320px)
+  flex: 0 0 120px
+  width: 120px
+  
+评论列表
+<div class="rating-wrapper">
+  <ul>
+    <li v-for="rating in ratings" v-show="needShow(rating.rateType,rating.text)" class="rating-item">
+      <div class="avatar">
+        <img width="28" height="28" src="rating.avatar">
+      </div>
+      <div class="content">
+        <h1 class="name">{{rating.username}}</h1>
+        <div class="star-wrapper">
+          <star :size="24" :score="rating.score"></star>
+          <span class="delivery" v-show="rating.deliveryTime">{{rating.deliveryTime}}分钟送达</span>
+        </div>
+        <p class="text">{{rating.text}}</p>
+        <div class="recommend" v-show="rating.recommend && rating.recommend.length">
+          <span class="icon-thumb_up"></span>
+          <span v-for="item in rating.recommend" class="item">{{item}}</span>
+        </div>
+        <div class="time">{{rating.rateTime | format}}</div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+.rating-wrapper
+  padding: 0 18px
+  .rating-item
+    display: flex
+    padding: 18px 0
+    border-1px(rgba(7, 17, 27, 0.1))
+    .avatar
+      flex: 0 0 28px
+      width: 28px
+      margin-right: 12px
+      img
+        border-radius: 50%
+    .content
+      position: relative
+      flex: 1
+      .name
+        line-height: 12px
+        font-size: 10px
+        color: rgb(7, 17, 27)
+        margin-bottom: 4px
+      .star-wrapper
+        margin-bottom: 6px
+        font-size: 0
+        .star
+          display: inline-block
+          margin-right: 6px
+          vertical-align: top
+        .delivery
+          display: inline-block
+          vertical-align: top
+          font-size: 10px
+          color: rgb(147, 153, 159)
+      .text
+        line-height: 18px
+        color: rgb(7, 17, 27)
+        font-size: 12px
+        margin-bottom: 8px
+      .recommend
+        line-height: 16px
+        font-size: 0
+        .icon-thumb_up, .item
+          display: inline-block
+          margin: 0 8px 4px 0
+          font-size: 9px
+        .icon-thumb_up
+          color: rgb(0, 160, 220)
+        .item
+          padding: 0 6px
+          border: 1px solid rgba(7, 17, 27, 0.1)
+          border-radius: 1px
+          color: rgb(147, 153, 159)
+          background: #fff
+      .time
+        position: absolute
+        top: 0
+        right: 0
+        line-height: 12px
+        font-size: 10px
+        color: rgb(147, 153, 159)
+
+商家组件开发seller 相对简单
+mounted() {
+  this.scroll = new BScroll(this.$refs.seller, {
+    click: true
+  });
+},
+
+在mounted这个hook里seller还没有被获取到，所以bscroll无法正常滚动
+export default{
+  props: {
+    seller: {
+      type: Object
+    }
+  },
+  created() {
+    this.classMap = ['decrease', 'discount', 'special', 'invoice', 'guarantee'];
+  },
+  watch: {
+    'seller'() {
+      this._initScroll();
+      this._initPics();
+    }
+  },
+  mounted() {
+    this._initScroll();
+    this._initPics();
+  },
+  methods: {
+    _initScroll() {
+      if (this.seller) {
+        this.$nextTick(() => {
+          if (!this.scroll) {
+            this.scroll = new BScroll(this.$refs.seller, {
+              click: true
+            });
+          } else {
+            this.scroll.refresh();
+          }
+        });
+      }
+    },
+    _initPics() {
+      if (this.seller.pics) {
+        let picWidth = 120;
+        let margin = 6;
+        let width = (picWidth + margin) * this.seller.pics.length - margin;
+        this.$refs.picList.style.width = width + 'px';
+        this.$nextTick(() => {
+          if (!this.picScroll) {
+            this.picScroll = new BScroll(this.$refs.picWrapper, {
+              scrollX: true,
+              eventPassthrough: 'vertical'
+            });
+          } else {
+            this.picScroll.refresh();
+          }
+        });
+      }
+    }
+  },
+  components: {
+    star,
+    split
+  }
+};
+
+加入商家id
+http://localhost:8080/?id=123435#/seller
+data () {
+  return {
+    seller: {
+      id: (() => {
+        let queryParam = urlParse();
+        return queryParam.id;
+      })()
+    }
+  };
+}
+//util.js
+/**
+ * 解析url参数
+ * @example ?id-12345&a=b
+ * @return {[Object]} {id:12345,a:b}
+ */
+export function urlParse() {
+  let url = window.location.search;
+  let obj = {};
+  let reg = /[?&][^?&]+=[^?&]+/g;
+  let arr = url.match(reg);
+  // ['?id=12345', '&a=b']
+  if (arr) {
+    arr.forEach((item) => {
+      let tempArr = item.substring(1).split('=');
+      let key = decodeURIComponent(tempArr[0]);
+      let value = decodeURIComponent(tempArr[1]);
+      obj[key] = value;
+    });
+  }
+  return obj;
+};
+
+给对象扩展属性
+this.seller = Object.assign({}, this.seller, response.data);
+而不是this.seller = response.data;
+这样this.seller就不会直接被覆盖，还存在this.seller.id
+
+localStorage缓存
+//store.js
+export function saveToLocal(id, key, value) {
+  let seller = window.localStorage.__seller__;
+  if (!seller) {
+    seller = {};
+    seller[id] = {};
+  } else {
+    seller = JSON.parse(seller);
+    if (!seller[id]) {
+      seller[id] = {};
+    }
+  }
+  seller[id][key] = value;
+  window.localStorage.__seller__ = JSON.stringify(seller);
+};
+
+export function loadFromLocal(id, key, def) {
+  let seller = window.localStorage.__seller__;
+  if (!seller) {
+    return def;
+  }
+  seller = JSON.parse(seller)[id];
+  if (!seller) {
+    return def;
+  }
+  let ret = seller[key];
+  return ret || def;
+};
+
+keep-alive把组件的状态保持在内存里，在切换的时候可以实现从内存中恢复，这样购物车就不会清空，请求也不会重复发送
+
+webpack打包 vue的webapp nmp run build
+build/build.js
+webpack.prod.conf.js
+ExtractTextPlugin生成独立的文件
+配置文件修改
+
+监听事件的另一种方法：
+this.$emit();
+@add = "addFood";
+父组件 在子组件的标签中绑定监听 methods里定义方法
+
+总结：
+vue-cli脚手架 组件化模块化 
+vue-router vue-resource
+vue+eslint webpack

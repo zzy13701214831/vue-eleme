@@ -12,13 +12,16 @@
         <router-link to="/seller">商家</router-link>
       </div>
     </div>
-    
-    <router-view></router-view>
+    <keep-alive>
+      <router-view :seller="seller"></router-view>
+    </keep-alive>
   </div>
 </template>
-  
+
 <script type="text/ecmascript-6">
-  import header from './components/header/header.vue';
+  import header from './components/header/header';
+  import Vue from 'vue';
+  Vue.prototype.$eventHub = Vue.prototype.$eventHub || new Vue();
 
   const ERR_OK = 0;
 
